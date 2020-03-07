@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<meta name="description" content="Efficient Exact Inference for Dynamical Systems with Noisy Measurements using Sequential Approximate Bayesian Computation"/>
+	<meta name="author" content="Yannik Schälte"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<title>Exact ABC</title>
+
+	<link rel="stylesheet" href="reveal.js/css/reset.css">
+	<link rel="stylesheet" href="reveal.js/css/reveal.css">
+	<link rel="stylesheet" href="reveal.js/css/theme/white.css">
+	<link rel="stylesheet" href="reveal.js/css/ystyle.css">
+
+
+	<!-- Theme used for syntax highlighting of code -->
+	<link rel="stylesheet" href="reveal.js/lib/css/monokai.css">
+
+	<!-- Printing and PDF exports -->
+	<script>
+		var link = document.createElement( 'link' );
+		link.rel = 'stylesheet';
+		link.type = 'text/css';
+		link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+		document.getElementsByTagName( 'head' )[0].appendChild( link );
+	</script>
+
+	<style>
+ 		img {background-color: #ffffff00; border: none !important; box-shadow: none !important}
+		.reveal {font-size: 30px;}
+		.conclusion {border-radius: 10px; background-color: #E65100; color: #ffffff; padding: 10px;}
+		table, tr, th, td {border: 0px !important}
+	</style>
+</head>
+
+
+<body>
+<div class="reveal">
+	<div class="slides" id="id_slides">
+
+
+		<section data-background="#111111"></section>
+
+
+		<section data-background="#111111" data-transition="slide-in slide-out">
+			<img src="img/front.svg" alt="Front page" style="background-color:#00000000"/>
+		</section>
+
+
+		<section data-background="#111111">
+			<div>based on:</div>
+			<div style="align: left;" align="left">
+				<h3>Efficient Exact Inference for Dynamical Systems with Noisy Measurements using Sequential Approximate Bayesian Computation</h3>
+				<h4>Yannik Schälte, Jan Hasenauer</h4>
+				preprint, bioRxiv 2020.01.30.927004
+			</div>
+		</section>
+
+
+		<section data-background="#111111" data-background-image="img/graphical_abstract.svg.png" data-background-transition="zoom"></section>
+
+
+		<section>
+			<h1>Contents</h1>
+			<ul>
+				<li>Basics of ABC</li>
+				<li>Measurement noise in ABC</li>
+				<li>An efficient approach</li>
+				<li>Some applications</li>
+			</ul>
+		</section>
+
+
+		<section data-background="#e4003a" data-background-transition="zoom">
+			<h1>Basics of ABC</h1>
+		</section>
+
+
+		<script>
+var node = document.getElementById("id_slides");
+var i;
+for (i = 0; i < 8; i++) {
+	node.innerHTML += "<section data-transition='fade'><h2>Rejection ABC</h2><img src='img/abc_principles-" + i + ".svg' alt='ABC principles'/></section>"
+}
+for (i = 8; i < 10; i++) {
+	node.innerHTML += "<section data-transition='fade'><h2>ABC-SMC</h2>combine with a sequential Monte-Carlo scheme<img src='img/abc_principles-" + i + ".svg' alt='ABC-SMC principles'/><small>similar to Toni et al., J. Royal Society 2009</small></section>"
+}
+</script>
+
+
+		<section>
+			<h2>ABC-SMC</h2>
+			in algorithmic form<br/>
+			<ul>
+				<li>
+					For $t=1,\ldots,t_{max}$:
+					<ul>
+						<li>until $N$ acceptances:
+							<ol>
+								<li>sample parameter $\theta \sim g_t(\theta)$</li>
+								<li>simulate data $y \sim \pi(y|\theta)$</li>
+								<li>accept $\theta$ if $d(y, D) \leq \varepsilon_t$</li>
+							</ol>
+							denote by $\theta_1^t,\ldots,\theta_N^t$ the accepted parameters
+						</li>
+						<li>compute weights $w_i^t = \frac{\pi(\theta_i^t)}{g_t(\theta_i^t)}$</li>
+					</ul>
+				</li>
+			</ul>
+		</section>
+
+
+		<!--
+        <section>
+        We want:
+        \[\pi(\theta|D) \propto p(D|\theta)\pi(\theta)\]
+        <br/>
+        We get:
+        \[\pi_{ABC}(\theta|D) \propto \int I(\{d(y, D) \leq \varepsilon\})p(y|\theta)\pi(\theta)\operatorname{dy} \approx \frac{1}{N} \sum_{i=1}^N\delta_{\theta^{(i)}}(\theta)\]
+        with distance $d$, threshold $\varepsilon>0$, and summary statistics $s$
+        </section>
+        -->
+
+
+		<section data-background="#e4003a" data-background-transition="zoom">
+			<h1>Measurement noise</h1>
+		</section>
+
+
+		<section>
+			<h2>Noise?</h2>
+			<blockquote>
+				&ldquo;We used ABC to parameterize our ODE&rdquo;
+			</blockquote>
+			<blockquote>
+				&ldquo;ABC does not use a likelihood&rdquo;
+			</blockquote>
+			<blockquote>
+				&ldquo;To avoid assumptions of a normal likelihood we use [...] ABC&rdquo;
+			</blockquote>
+			<blockquote>
+				&ldquo;We should at some point compare ABC and MCMC&rdquo;
+			</blockquote>
+		</section>
+
+
+		<section>
+			<h2>Noise!</h2>
+			<blockquote>
+				&ldquo;ABC provides exact inference for the wrong model&rdquo;
+			</blockquote>
+			<div style="text-align: right"><small>Darren Wilkinson 2013</small></div>
+			<p>
+				... namely the acceptance step induces uniform noise
+			</p>
+		</section>
+
+
+		<section>
+			<h2>What happens when ignoring noise in ABC?</h2>
+			<p class="fragment">Assume: Model $y\sim p(y|\theta)$ does not account for noise.
+			<p class="fragment">But: Measurements are noisy, $D\sim \pi(\bar y|y,\theta)$.
+		</section>
+
+
+		<section>
+			<h3>an ODE model</h3>
+			<img src="img/motivation_data.svg" class="stretch"/>
+		</section>
+
+
+		<section>
+			<h3>a non-identifiable ODE model</h3>
+			<img src="img/motivation_nonidable.svg" class="stretch"/>
+		</section>
+
+
+		<section>
+			<h3>an SDE model</h3>
+			<img src="img/motivation_sde.svg" class="stretch"/>
+		</section>
+
+
+		<section>
+			<h2>Who left the noise out?</h2>
+			<img src="img/nonoise_papers.svg" class="stretch"/>
+		</section>
+
+
+		<section>
+			<h2>How to account for noise</h2>
+		</section>
+
+
+		<section>
+			<img src="img/concept.svg" class="stretch" alt="Measurement noise motivation"/>
+		</section>
+
+
+		<section>
+			<h2>Theorem (exact inference)</h2>
+			<p>
+				Using the <b>modified kernel</b> with $c>\pi(D|y,\theta)\forall y,\theta$, we sample from the <b>true posterior</b>
+				\[\pi_\text{ABC}(D|\theta) = \pi(D|\theta) \propto \int\pi(D|y,\theta)p(y|\theta)\operatorname{dy}\cdot\pi(\theta)\]
+				assuming <b>noisy data</b> $D\sim\pi(\bar y|y,\theta)$.
+			</p>
+			<p>
+			<ul>
+				<li>non-trivial noise allows to do exact likelihood-free inference</li>
+				<li>also applicable to stochastic models</li>
+				<li>allows to parameterize the noise model</li>
+			</ul>
+		</section>
+
+
+		<section data-background="#e4003a" data-background-transition="zoom">
+			<h1>An efficient approach</h1>
+		</section>
+
+
+		<section>
+			<h2>Integrate in SMC</h2>
+			<p class="fragment">
+				We temperate:
+			<p class="fragment">
+				3. Accept with probability $\left(\frac{\pi(D|y,\theta)}{c}\right)^{1/T_t}$
+				<br/>
+				with $c>\pi(D|y,\theta)\forall y,\theta$, $T_0\gg 1$, $T_{N_t} = 1$.
+			<p class="fragment">
+				This way, we take importance samples from
+				\[\pi_{\text{ABC},t}(\theta|D)\propto\int\pi(D|y,\theta)^{1/T_t}\pi(y|\theta)\operatorname{dy}\cdot\pi(\theta).\]
+		</section>
+
+
+		<section>
+			<h2>How to choose $c$?</h2>
+			<ul>
+				<li>Highest peak of density (usually at $y=D$)</li>
+				<li>Empirical highest peak</li>
+				<li class="fragment grow">Adaptive choice</li>
+			</ul>
+		</section>
+
+
+		<section>
+			<h2>Adaptive choice of $c$</h2>
+			<img src="img/c_trajectory.svg" class="stretch"/>
+			<p class="fragment">Introduces a bias if simulations with a higher density occur.
+			<p class="fragment">However, this can be overcome ...
+		</section>
+
+
+		<section>
+			<h2>Theorem (Rejection Control Importance Sampling)</h2>
+			<p>
+				<b>For any $c_t>0$</b>, we have target the <b>correct distribution</b> when we accept with probability
+				$\min\left[\frac{\pi(D|y,\theta)}{c},1\right]^{1/T_t}$ and <b>update the weights</b> to
+				\[\tilde w := \frac{\left(\frac{\pi(D|y,\theta)}{c_t}\right)^{1/T_t}}{\min\left[\frac{\pi(D|y,\theta)}{c_t},1\right]^{1/T_t}}\cdot\frac{\pi(\theta)}{g_t(\theta)}.\]
+		</section>
+
+
+		<section>
+			<h2>Reweighting corrects for bias</h2>
+			<img src="img/fixed_c_cr.svg" class="stretch"/>
+		</section>
+
+
+		<section>
+			<h2>Selection of temperatures</h2>
+			<ul>
+				<li>Bridge from prior to posterior with $T_{N_t}=1$</li>
+				<li>Balance information gain and acceptance rate</li>
+				<li>Fallback: Exponential decay scheme $T_{t+1} = \alpha T_t$ with $\alpha\in(0,1)$</li>
+			</ul>
+		</section>
+
+
+		<section>
+			<h2>Acceptance rate scheme</h2>
+			<ul>
+				<li><b>Pedict acceptance rate</b> based on previous simulations:
+					\[\gamma_T \approx \frac 1 N \sum_{i=1}^N v_t(\theta_i^{(t-1)}) \min\left[\left(\frac{\pi(D | y_i^{(t-1)},\theta_i^{(t-1)})}{c_t}\right)^{1/T},1\right]\]</li>
+				<li>Choose $T$ to fix rate to a constant value</li>
+				<li>In particular allows to <b>automatically choose $T_1$</b></li>
+			</ul>
+		</section>
+
+
+		<section>
+			<h2>Acceptance rate prediction works</h2>
+			<img src="img/acceptance_rate.svg" class="stretch"/>
+		</section>
+
+
+		<section>
+			<h2>ASSA: All combined</h2>
+			Adaptive Sequential Stochastic Acceptor
+		</section>
+
+
+		<section>
+			<h2>Implementation</h2>
+			<img src="img/logo.svg"/>
+			<pre>
+        <code class="python" data-trim>
+# define problem
+abc = pyabc.ABCSMC(
+    model, prior,
+    acceptance_kernel,
+    temperature_scheme,
+    acceptor)
+
+# pass data
+abc.new(
+    database,
+    observation)
+
+# run it
+abc.run()
+        </code>
+    </pre>
+		</section>
+
+
+		<section data-background="#e4003a" data-background-transition="zoom">
+			<h1>Some applications</h1>
+		</section>
+
+
+		<section>
+			<h2>Can estimate noise parameters</h2>
+			<img src="img/cr_uvar_with_true.svg" class="stretch"/>
+		</section>
+
+
+		<section>
+			<h2>Temperation smoothly transitions from prior to posterior</h2>
+			<img src="img/cr_10_alltimes.svg" class="stretch"/>
+		</section>
+
+
+		<section>
+			<h2>Applicable to various model types and noise models</h2>
+			<p style="font-size: smaller">
+			<table>
+				<thead>
+				<tr>
+					<th>Id</th> <th>Description</th> <th>Type</th> <th>Noise model</th> <th>Parameters</th> <th>Data</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr>
+					<td>M1</td><td>Conversion reaction</td><td>ODE</td>	<td>Normal</td><td>2</td><td>10</td>
+				</tr>
+				<tr>
+					<td>M2</td><td>Conversion reaction</td><td>ODE</td><td>Laplace</td><td>2</td><td>10</td>
+				</tr>
+				<tr>
+					<td>M3</td><td>Hodgkin-Huxley neurons</td><td>SDE</td><td>Normal</td><td>2</td><td>100</td>
+				</tr>
+				<tr>
+					<td>M4</td><td>Gene expression</td><td>MJP</td><td>Poisson</td><td>2</td><td>10</td>
+				</tr>
+				<tr>
+					<td>M5</td><td>STAT5 dimerization</td><td>ODE</td><td>Normal</td><td>13</td><td>48</td>
+				</tr>
+				<tr>
+					<td>M6</td><td>Tumor spheroid growth</td> <td>ABM</td><td>Normal</td><td>7</td><td>30</td>
+				</tr>
+				</tbody>
+			</table>
+		</section>
+
+
+		<section>
+			<h2>Applicable to various model types and noise models</h2>
+			<img src="img/application_posteriors.svg" class="stretch"/>
+		</section>
+
+
+		<section>
+			<h2>Orders of magnitude speedup</h2>
+			<img src="img/application_metas.svg" class="stretch"/>
+		</section>
+
+
+		<section>
+			<h2>Scales to challenging problems</h2>
+			11 parameter ODE model with real data
+			<img src="img/boehm_combined_kde_1d.svg" class="stretch"/>
+			<div style="text-align: right"><small>model from Boehm et al., Journal of Proteome Research 2014</small></div>
+		</section>
+
+
+		<section>
+			<h2>Scales to challenging problems</h2>
+			expensive multi-scale tumor growth model
+			<img src="img/tumor_final_comparison_noisymodel_vs_stochacc.svg" class="stretch"/>
+			<div style="text-align: right"><small>model based on Jagiella et al., Cell Systems 2017</small></div>
+		</section>
+
+
+		<section data-background="#e4003a" data-background-transition="zoom">
+			<h1>Discussion</h1>
+		</section>
+
+
+		<section>
+			<h2>Summary</h2>
+			<ul>
+				<li>Non-trivial noise model allows for exact likelihood-free inference</li>
+				<li>Devised a widely applicable sequential approach</li>
+				<li>Orders of magnitude speedup</li>
+			</ul>
+		</section>
+
+
+		<section>
+			<h2>Outlook</h2>
+			<ul>
+				<li>Model selection by thermodynamic integration</li>
+				<li>Optimize transitions</li>
+				<li>Apply to multi-cellular models</li>
+			</ul>
+		</section>
+
+
+		<section data-background="img/group.jpg">
+			<div style="background-color: #ffffff99; text-align: left; padding: 30px;">
+				<h3>Acknowledgments</h3>
+				<p>
+					Thanks to:
+				<ul style="text-align:left">
+					<li>Jan Hasenauer</li>
+					<li>Elba Raimúndez-Álvarez</li>
+					<li>Emad Alamoudi</li>
+					<li>...</li>
+				</ul>
+				<img src="img/ack.svg"/>
+			</div>
+		</section>
+
+
+		<section>
+			<h1>Questions?</h1>
+		</section>
+
+
+		<section data-background="#e4003a" data-background-transition="zoom">
+			<h1>Backup</h1>
+		</section>
+
+
+		<section>
+			<h2>Multi-scale model of tumor growth (M6)</h2>
+			<small>based on Jagiella et al., Cell Systems 2017</small>
+			<img src="img/dividing_bg_transparent_small.gif" class="stretch" alt="Tumor gif"/>
+			<ul>
+				<li>cells modeled as interacting stochastic agents, dynamics of extracellular substances by PDEs</li>
+				<li>simulate up to 10<sup>6</sup> cells</li>
+				<li>10s - 1h for one forward simulation</li>
+			</ul>
+		</section>
+
+
+		<section>
+			<h2>Data</h2>
+			<img src="img/data_combined.svg" class="stretch"/>
+		</section>
+
+
+	</div>
+</div>
+
+
+<script src="reveal.js/js/reveal.js"></script>
+
+<script>
+// More info about config & dependencies:
+// - https://github.com/hakimel/reveal.js#configuration
+// - https://github.com/hakimel/reveal.js#dependencies
+Reveal.initialize({
+dependencies: [
+	{ src: 'reveal.js/plugin/markdown/marked.js' },
+	{ src: 'reveal.js/plugin/markdown/markdown.js' },
+	{ src: 'reveal.js/plugin/notes/notes.js', async: true },
+	{ src: 'reveal.js/plugin/highlight/highlight.js', async: true },
+	{ src: 'reveal.js/plugin/math/math.js', async: true },
+    { src: 'reveal.js/plugin/zoom-js/zoom.js', async: true }
+]
+});
+</script>
+
+
+</body>
+
+
+</html>
