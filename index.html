@@ -97,7 +97,7 @@ for (i = 8; i < 10; i++) {
 			in algorithmic form<br/>
 			<ul>
 				<li>
-					For $t=1,\ldots,t_{max}$:
+					For $t=1,\ldots,t_{N_t}$:
 					<ul>
 						<li>until $N$ acceptances:
 							<ol>
@@ -204,8 +204,8 @@ for (i = 8; i < 10; i++) {
 		<section>
 			<h2>Theorem (exact inference)</h2>
 			<p>
-				Using the <b>modified kernel</b> with $c>\pi(D|y,\theta)\forall y,\theta$, we sample from the <b>true posterior</b>
-				\[\pi_\text{ABC}(D|\theta) = \pi(D|\theta) \propto \int\pi(D|y,\theta)p(y|\theta)\operatorname{dy}\cdot\pi(\theta)\]
+				Using the <b>modified kernel</b> with $c>\pi(D|y,\theta)$ $\forall y,\theta$, we sample from the <b>true posterior</b>
+				\[\pi_\text{ABC}(D|\theta) = \pi(D|\theta) \propto \int\pi(D|y,\theta)p(y|\theta)\mathop{dy}\cdot\pi(\theta)\]
 				assuming <b>noisy data</b> $D\sim\pi(\bar y|y,\theta)$.
 			</p>
 			<p>
@@ -229,10 +229,10 @@ for (i = 8; i < 10; i++) {
 			<p class="fragment">
 				3. Accept with probability $\left(\frac{\pi(D|y,\theta)}{c}\right)^{1/T_t}$
 				<br/>
-				with $c>\pi(D|y,\theta)\forall y,\theta$, $T_0\gg 1$, $T_{N_t} = 1$.
+				with $c>\pi(D|y,\theta)$ $\forall y,\theta$, $T_0\gg 1$, $T_{N_t} = 1$.
 			<p class="fragment">
 				This way, we take importance samples from
-				\[\pi_{\text{ABC},t}(\theta|D)\propto\int\pi(D|y,\theta)^{1/T_t}\pi(y|\theta)\operatorname{dy}\cdot\pi(\theta).\]
+				\[\pi_{\text{ABC},t}(\theta|D)\propto\int\pi(D|y,\theta)^{1/T_t}p(y|\theta)\mathop{dy}\cdot\pi(\theta).\]
 		</section>
 
 
@@ -282,7 +282,7 @@ for (i = 8; i < 10; i++) {
 		<section>
 			<h2>Acceptance rate scheme</h2>
 			<ul>
-				<li><b>Pedict acceptance rate</b> based on previous simulations:
+				<li><b>Predict acceptance rate</b> based on previous simulations:
 					\[\gamma_T \approx \frac 1 N \sum_{i=1}^N v_t(\theta_i^{(t-1)}) \min\left[\left(\frac{\pi(D | y_i^{(t-1)},\theta_i^{(t-1)})}{c_t}\right)^{1/T},1\right]\]</li>
 				<li>Choose $T$ to fix rate to a constant value</li>
 				<li>In particular allows to <b>automatically choose $T_1$</b></li>
@@ -332,7 +332,7 @@ abc.run()
 
 
 		<section>
-			<h2>Can estimate noise parameters</h2>
+			<h2>Able to estimate noise parameters</h2>
 			<img src="img/cr_uvar_with_true.svg" class="stretch"/>
 		</section>
 
@@ -366,7 +366,7 @@ abc.run()
 					<td>M4</td><td>Gene expression</td><td>MJP</td><td>Poisson</td><td>2</td><td>10</td>
 				</tr>
 				<tr>
-					<td>M5</td><td>STAT5 dimerization</td><td>ODE</td><td>Normal</td><td>13</td><td>48</td>
+					<td>M5</td><td>STAT5 dimerization</td><td>ODE</td><td>Normal</td><td>11</td><td>48</td>
 				</tr>
 				<tr>
 					<td>M6</td><td>Tumor spheroid growth</td> <td>ABM</td><td>Normal</td><td>7</td><td>30</td>
@@ -383,14 +383,14 @@ abc.run()
 
 
 		<section>
-			<h2>Orders of magnitude speedup</h2>
+			<h2>Orders of magnitude speed-up</h2>
 			<img src="img/application_metas.svg" class="stretch"/>
 		</section>
 
 
 		<section>
 			<h2>Scales to challenging problems</h2>
-			11 parameter ODE model with real data
+			11 parameters ODE model with real data (M5)
 			<img src="img/boehm_combined_kde_1d.svg" class="stretch"/>
 			<div style="text-align: right"><small>model from Boehm et al., Journal of Proteome Research 2014</small></div>
 		</section>
@@ -398,7 +398,7 @@ abc.run()
 
 		<section>
 			<h2>Scales to challenging problems</h2>
-			expensive multi-scale tumor growth model
+			expensive multi-scale tumor growth model (M6)
 			<img src="img/tumor_final_comparison_noisymodel_vs_stochacc.svg" class="stretch"/>
 			<div style="text-align: right"><small>model based on Jagiella et al., Cell Systems 2017</small></div>
 		</section>
