@@ -102,7 +102,7 @@ for (i = 8; i < 10; i++) {
 						<li>until $N$ acceptances:
 							<ol>
 								<li>sample parameter $\theta \sim g_t(\theta)$</li>
-								<li>simulate data $y \sim \pi(y|\theta)$</li>
+								<li>simulate data $y \sim p(y|\theta)$</li>
 								<li>accept $\theta$ if $d(y, D) \leq \varepsilon_t$</li>
 							</ol>
 							denote by $\theta_1^t,\ldots,\theta_N^t$ the accepted parameters
@@ -142,9 +142,9 @@ for (i = 8; i < 10; i++) {
 			<blockquote>
 				&ldquo;To avoid assumptions of a normal likelihood we use [...] ABC&rdquo;
 			</blockquote>
-			<blockquote>
+			<!--<blockquote>
 				&ldquo;We should at some point compare ABC and MCMC&rdquo;
-			</blockquote>
+			</blockquote>-->
 		</section>
 
 
@@ -174,16 +174,15 @@ for (i = 8; i < 10; i++) {
 
 
 		<section>
-			<h3>a non-identifiable ODE model</h3>
-			<img src="img/motivation_nonidable.svg" class="stretch"/>
-		</section>
-
-
-		<section>
 			<h3>an SDE model</h3>
 			<img src="img/motivation_sde.svg" class="stretch"/>
 		</section>
 
+
+		<section>
+			<h3>a non-identifiable ODE model</h3>
+			<img src="img/motivation_nonidable.svg" class="stretch"/>
+		</section>
 
 		<section>
 			<h2>Who left the noise out?</h2>
@@ -192,7 +191,7 @@ for (i = 8; i < 10; i++) {
 
 
 		<section>
-			<h2>How to account for noise</h2>
+			<h2>How to account for noise?</h2>
 		</section>
 
 
@@ -414,7 +413,7 @@ abc.run()
 			<ul>
 				<li>Non-trivial noise model allows for exact likelihood-free inference</li>
 				<li>Devised a widely applicable sequential approach</li>
-				<li>Orders of magnitude speedup</li>
+				<li>Orders of magnitude speed-up</li>
 			</ul>
 		</section>
 
